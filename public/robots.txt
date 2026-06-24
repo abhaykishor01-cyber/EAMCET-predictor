@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://eamcetadvisor.vercel.app/sitemap.xml
+Sitemap: https://eamcet-predictor-coral.vercel.app/sitemap.xml
