@@ -1,0 +1,6 @@
+{
+  "name": "EamcetAdvisor",
+  "description": "Predict your AP EAMCET 2026 college admissions, explore cutoff trends, search colleges, and shortlist selections with PDF report generation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
