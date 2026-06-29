@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   GraduationCap,
   Search,
@@ -33,7 +33,11 @@ import {
   BranchData
 } from "./data/colleges";
 import jsPDF from "jspdf";
-
+import {
+  incrementPredictionCount,
+  incrementPdfDownloadCount,
+  subscribeToStats
+} from "./services/stats";
 interface PredictedOption {
   college: College;
   branch: BranchData;
@@ -88,6 +92,16 @@ export default function App() {
   // Form Submission Validation
   const [formError, setFormError] = useState<string>("");
 
+  const [predictionCount, setPredictionCount] = useState(0);
+const [pdfDownloadCount, setPdfDownloadCount] = useState(0);
+useEffect(() => {
+  const unsubscribe = subscribeToStats((stats) => {
+    setPredictionCount(stats.predictionCount || 0);
+    setPdfDownloadCount(stats.pdfDownloadCount || 0);
+  });
+
+  return () => unsubscribe();
+}, []);
   // Handle Predict Action
   const handlePredict = (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,6 +116,7 @@ export default function App() {
     }
     setFormError("");
     setHasPredicted(true);
+    incrementPredictionCount().catch(console.error);
     // Scroll smoothly to results
     setTimeout(() => {
       document.getElementById("predictions-results")?.scrollIntoView({ behavior: "smooth" });
@@ -312,6 +327,7 @@ export default function App() {
     };
 
     // Trigger PDF Generation
+    incrementPdfDownloadCount().catch(console.error);
     generatePDF(listToExport, params, shortlistOnly);
   };
 
@@ -697,23 +713,62 @@ export default function App() {
               </p>
               
               {/* Quick stats banner representing actual EAMCET scale */}
-              <div className="inline-flex flex-wrap items-center justify-center gap-4 sm:gap-8 bg-blue-50/50 border border-blue-100/60 rounded-2xl py-3 px-6 text-sm text-slate-700 font-medium mt-4">
-                <div className="flex items-center gap-2">
-                  <Building2 className="w-4 h-4 text-blue-600" />
-                  <span>600+ Participating Colleges</span>
-                </div>
-                <div className="h-4 w-[1px] bg-slate-200 hidden sm:block"></div>
-                <div className="flex items-center gap-2">
-                  <Award className="w-4 h-4 text-blue-600" />
-                  <span>1.5 Lakh+ Combined Seats</span>
-                </div>
-                <div className="h-4 w-[1px] bg-slate-200 hidden sm:block"></div>
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-blue-600" />
-                  <span>MPC & BiPC Streams</span>
-                </div>
-              </div>
-            </div>
+                {/* Quick stats banner */}
+<div className="inline-flex flex-wrap items-center justify-center gap-4 sm:gap-8 bg-blue-50/50 border border-blue-100/60 rounded-2xl py-3 px-6 text-sm text-slate-700 font-medium mt-4">
+
+  <div className="flex items-center gap-2">
+    <Building2 className="w-4 h-4 text-blue-600" />
+    <span>600+ Participating Colleges</span>
+  </div>
+
+  <div className="h-4 w-[1px] bg-slate-200 hidden sm:block"></div>
+
+  <div className="flex items-center gap-2">
+    <Award className="w-4 h-4 text-blue-600" />
+    <span>1.5 Lakh+ Combined Seats</span>
+  </div>
+
+  <div className="h-4 w-[1px] bg-slate-200 hidden sm:block"></div>
+
+  <div className="flex items-center gap-2">
+    <TrendingUp className="w-4 h-4 text-blue-600" />
+    <span>MPC & BiPC Streams</span>
+  </div>
+
+</div>
+
+{/* Live Usage Statistics */}
+<div className="mt-6 bg-white border border-slate-200 rounded-2xl shadow-sm p-5">
+  <div className="text-center mb-4">
+    <h3 className="text-lg font-extrabold text-slate-900">
+      📊 Trusted by AP EAMCET Students
+    </h3>
+    <p className="text-sm text-slate-500">
+      Live statistics updated in real time
+    </p>
+  </div>
+
+  <div className="grid grid-cols-2 gap-4">
+    <div className="bg-blue-50 rounded-xl p-4 text-center">
+      <div className="text-3xl font-extrabold text-blue-600">
+        {predictionCount.toLocaleString()}
+      </div>
+      <div className="text-sm font-semibold text-slate-600 mt-1">
+        🎯 Predictions Generated
+      </div>
+    </div>
+
+    <div className="bg-green-50 rounded-xl p-4 text-center">
+      <div className="text-3xl font-extrabold text-green-600">
+        {pdfDownloadCount.toLocaleString()}
+      </div>
+      <div className="text-sm font-semibold text-slate-600 mt-1">
+        📄 PDFs Downloaded
+      </div>
+    </div>
+  </div>
+</div>
+      </div>
 
             {/* PREDICTOR FORM & USER ENTRY GRID */}
             <div className="bg-white rounded-3xl border border-slate-200 shadow-lg shadow-slate-100/50 overflow-hidden">
